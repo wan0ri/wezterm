@@ -315,7 +315,19 @@ local lint_grp = vim.api.nvim_create_augroup("NvimLintOnSave", { clear = true })
 vim.api.nvim_create_autocmd({ "BufWritePost", "InsertLeave" }, {
   group = lint_grp,
   callback = function()
-    require("lint").try_lint()
+    local ft = vim.bo.filetype
+    local names = lint.linters_by_ft[ft]
+    if not names then return end
+    local runnable = {}
+    for _, name in ipairs(names) do
+      local linter = lint.linters[name]
+      if linter then
+        local cmd = type(linter.cmd) == "function" and linter.cmd() or linter.cmd
+        local exe = type(cmd) == "table" and cmd[1] or cmd
+        if vim.fn.executable(exe) == 1 then table.insert(runnable, name) end
+      end
+    end
+    if #runnable > 0 then lint.try_lint(runnable) end
   end,
 })
 

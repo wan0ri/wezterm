@@ -1,111 +1,92 @@
-# Neovim VSCode-like Starter (Infra Focus)
+# WezTerm Configuration
+======================
 
-この構成は VSCode に近い操作感で、Terraform / YAML / Docker などのインフラ用途を快適にする最小セットです。
-
-構成ファイル
-
-- `~/.config/nvim/init.lua`（本リポの `nvim-proposed/init.lua` を配置済み）
+このフォルダは WezTerm のユーザー設定です。
+軽量・高速な描画、VSCode/iTerm2 に近い操作感、日本語IME、シアン基調のテーマを前提に調整しています。
 
 ---
 
-## 前提
+## 構成ファイル
 
-- Neovim 0.9+、git、ripgrep、make（任意: Telescope FZF 拡張のビルド用）
-- Nerd Font（MesloLGS NF 等）
+- `wezterm.lua` 本体設定（外観/タブ/フォントなど）
+- `keybinds.lua` キーバインド定義（リーダーキー、分割、コピー、全画面 など）
 
 ---
 
-## 初回セットアップ（3 分）
+## リロード方法
 
-- `nvim` を起動すると `lazy.nvim` が自動でプラグインを取得します。
-- `:Mason` を開き、以下をインストール（必要に応じて）
-  - LSP: terraform-ls, yaml-language-server, json-lsp, dockerfile-language-server, bash-language-server, lua-language-server, helm-ls, marksman
-  - Formatter: yamlfmt, prettierd or prettier, shfmt, stylua（terraform_fmt は内蔵）
-  - Linter: markdownlint, yamllint
+- WezTerm を再起動するか、TUIで `:config reload` を実行
+
+## 外観（Appearance）
+
+- フォント: `font_with_fallback({ "MesloLGS NF", "Monaco", "Courier New", "Menlo", "Hiragino Sans", "Apple Color Emoji" })`
+- フォントサイズ: `14.0`
+- 日本語IME: `use_ime = true`
+- 背景透明度: `window_background_opacity = 0.7`
+- 背景ぼかし(macOS): `macos_window_background_blur = 20`
+- タブ装飾: タイトルバーを隠し（`window_decorations = "RESIZE"`）、アクティブタブをシアン `#00BCD4` に強調
+- カーソル色: 通常/IME合成中ともにシアン（`cursor_bg/cursor_border/compose_cursor = "#00BCD4"`、文字は黒）
+
+---
+
+## タブ/ペイン表示
+
+- タブバーは複数タブ時に自動表示、境界線を非表示
+- アクティブタブはシアン背景で、左右に三角装飾（`format-tab-title`）
+- 既定でタブ追加ボタン/クローズボタンを非表示
 
 ---
 
 ## キーバインド（主要）
 
-- リーダーキー: `<Space>`
-- ファイルを開く（Quick Open）: `Ctrl-p`
-- コマンドパレット: `<Space> sp`
-- エクスプローラ（Neo-tree）: `Ctrl-b`
-- 検索（ripgrep）: `<Space> fg`
-- バッファ一覧: `<Space> fb`
-- コメントトグル: `gcc`（行）/ `gc`（選択）
-- フォーマット（手動）: `<Space> f`
-- Git UI: `:Neogit` / 差分ビュー `:DiffviewOpen`
+- リーダーキー: `Ctrl+q`（押下後に h/j/k/l など）
+- 改行（チャット欄などで送信せず改行）: `Option+Enter`（LFを文字として挿入）
+- ペイン最大化（ズーム）: `Cmd+Shift+F`
+- 全画面切替: `Ctrl+Shift+F`
+- コマンドパレット: `Cmd+p` または `Ctrl+Shift+p`
+- 設定リロード: `Ctrl+Shift+r`
+- コピー/貼り付け: `Cmd+c` / `Cmd+v`
+- タブ操作: 新規 `Cmd+t`、クローズ `Cmd+w`、次/前 `Ctrl+Tab` / `Ctrl+Shift+Tab`、並べ替え `Leader + { / }`
+- タブへジャンプ: `Cmd+1..9`
+- ペイン分割: `Leader + d`（縦）/ `Leader + r`（横）
+- ペイン移動: `Leader + h/j/k/l`
+- ペイン選択UI: `Ctrl+Shift+[`（`PaneSelect`）
+- ズーム（選択ペインのみ表示）: `Leader + z`
+- フォントサイズ: 拡大/縮小 `Ctrl + / -`、リセット `Ctrl+0`
+- コピー・検索モード: `Leader + [`（Copy Mode）
 
 ---
 
-## LSP アクション（バッファローカル）
+## フォントについて
 
-- 定義へ: `gd`
-- 参照を探す: `gr`
-- Hover: `K`
-- リネーム: `<Space> rn`
-- コードアクション: `<Space> ca`
-- 診断を前後へ: `[d` / `]d`
-- ライン診断: `<Space> e`
+- VSCode の `editor.fontFamily` に合わせ、MesloLGS → Monaco → Courier New → Menlo の順でフォールバック
+- 日本語/絵文字の欠字対策で「Hiragino Sans」「Apple Color Emoji」を末尾に追加
 
 ---
 
-## フォーマット/リンタ
+## Tips / よくある質問
 
-- 保存時フォーマット有効（Conform）
-- 対応: Terraform（terraform_fmt）、YAML（yamlfmt/Prettier）、JSON/JSONC（Prettier）、Lua（stylua）、Shell（shfmt）、Markdown（Prettier）
-- 手動: `<Space> f`
-- Lint（nvim-lint）: Markdown → markdownlint、YAML → yamllint（保存/挿入終了時に実行）
-
----
-
-## Markdown
-
-- 表編集: `:TableModeToggle`
-- プレビュー: `:Glow`（終了は `q`）
+- Option+Enter が改行にならない: `keybinds.lua` で `SendString("\n")` を割り当て済み。リロード後に再試行
+- IMEの下線色が緑: `compose_cursor` をシアンに設定済み
+- タブ色を変えたい: `wezterm.on("format-tab-title", ...)` で `background` のカラーコードを変更
+- 他アプリ風のキーへ変更したい: `keybinds.lua` に追記（例: `SUPER+p` を別アクションへ）
 
 ---
 
-## Terraform
+## 既知の注意点
 
-- LSP: terraform-ls（`*.tf`, `*.tfvars`）
-- フォーマット: 保存時に `terraform fmt`（Conform 経由）
-
----
-
-## YAML / JSON
-
-- SchemaStore 連携で自動スキーマ解決（GitHub Actions/Kubernetes 等）
-- YAML LSP でキー順固定を無効化（`keyOrdering = false`）
+- `Cmd` 系は WezTerm が受け取り可能ですが、SSH先の TUI/Vim には直接届かない場合があります（必要に応じて `SendKey`/`SendString` で中継）
+- macOS のフルスクリーン（`Ctrl+Shift+F`）はスペース（デスクトップ）をまたぐ切替のため、アプリ設定でアニメーションが入る場合があります
 
 ---
 
-## VSCode 風ショートカット（任意）
+## 編集場所
 
-- 端末では macOS の `Cmd` は直接届かないため、WezTerm 側で中継すると快適です。
-  - `SUPER+p` → `<C-p>`（Quick Open）
-  - `SUPER+b` → `<C-b>`（Explorer）
-  - `SUPER+SHIFT+p` → `:Telescope commands<CR>`（コマンドパレット）
-  - `SUPER+/` → `<C-/>`（コメントトグル）
+- 全体: `~/.config/wezterm/wezterm.lua`
+- キー: `~/.config/wezterm/keybinds.lua`
 
 ---
 
-## トラブルシュート
+## 反映手順
 
-- `:Lazy sync` でプラグイン同期 / `:checkhealth` で診断
-- Mason でツールを入れたのに見つからない → `:Mason` の Path を確認、`PATH` に `$HOME/.local/share/nvim/mason/bin` を追加
-- Telescope が重い → `telescope-fzf-native` をビルド、`ripgrep` の導入を確認
-
----
-
-## アンインストール/元に戻す
-
-- `rm -rf ~/.config/nvim`（設定）
-- `rm -rf ~/.local/share/nvim`（プラグイン/キャッシュ。必要なら）
-
----
-
-## 構成の編集場所
-
-- `~/.config/nvim/init.lua`
+- 変更後に `:config reload` で即時反映、または WezTerm を再起動
