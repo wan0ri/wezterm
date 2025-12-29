@@ -34,12 +34,27 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
-  -- テーマ（VSCode）
+  -- テーマ（VSCode）: 併用可能。既定は cobalt2 を適用するため、ここでは切替のみ準備。
   {
     "Mofiqul/vscode.nvim",
     config = function()
       require("vscode").setup({ transparent = false })
-      vim.cmd.colorscheme("vscode")
+      -- デフォルト適用はしない（cobalt2 を後段で適用）
+      -- vim.cmd.colorscheme("vscode")
+    end,
+  },
+  -- Cobalt2 テーマ（VSCode Cobalt2 に近い配色）
+  { "rktjmp/lush.nvim" },
+  {
+    "lalitmee/cobalt2.nvim",
+    lazy = false,
+    priority = 1000,
+    config = function()
+      require("cobalt2").setup({})
+      vim.cmd.colorscheme("cobalt2")
+      -- 透過を生かしたい場合は下記を有効化
+      -- vim.api.nvim_set_hl(0, "Normal",      { bg = "none" })
+      -- vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" })
     end,
   },
 
