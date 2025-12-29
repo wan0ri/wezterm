@@ -45,16 +45,51 @@ require("lazy").setup({
   },
   -- Cobalt2 テーマ（VSCode Cobalt2 に近い配色）
   { "rktjmp/lush.nvim" },
+  { "tjdevries/colorbuddy.nvim" },
   {
     "lalitmee/cobalt2.nvim",
     lazy = false,
     priority = 1000,
     config = function()
-      require("cobalt2").setup({})
-      vim.cmd.colorscheme("cobalt2")
+      local ok = pcall(function()
+        require("cobalt2").setup({})
+        vim.cmd.colorscheme("cobalt2")
+      end)
+      if not ok then
+        vim.cmd.colorscheme("vscode")
+      end
       -- 透過を生かしたい場合は下記を有効化
       -- vim.api.nvim_set_hl(0, "Normal",      { bg = "none" })
       -- vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" })
+      -- Treesitter ハイライトの色分けを追加（Cobalt2 の色味に寄せる）
+      local set = vim.api.nvim_set_hl
+      local colors = {
+        cyan   = "#9EFFFF",
+        yellow = "#FFC600",
+        orange = "#FF9D00",
+        green  = "#A5FF90",
+        pink   = "#FF6C99",
+        blue   = "#22C7FF",
+        fg     = "#E1EFFF",
+      }
+      set(0, "@string",       { fg = colors.green })
+      set(0, "@number",       { fg = colors.orange })
+      set(0, "@boolean",      { fg = colors.orange })
+      set(0, "@constant",     { fg = colors.pink })
+      set(0, "@keyword",      { fg = colors.blue, italic = true })
+      set(0, "@type",         { fg = colors.cyan })
+      set(0, "@type.builtin", { fg = colors.cyan, italic = true })
+      set(0, "@function",     { fg = colors.cyan, bold = true })
+      set(0, "@method",       { fg = colors.cyan })
+      set(0, "@property",     { fg = colors.yellow })
+      set(0, "@field",        { fg = colors.yellow })
+      set(0, "@label",        { fg = colors.yellow })
+      set(0, "@variable",     { fg = colors.fg })
+      -- Terraform/HCL 強化（ある場合のみ適用）
+      pcall(set, 0, "@attribute.hcl",     { fg = colors.yellow })
+      pcall(set, 0, "@property.hcl",      { fg = colors.yellow })
+      pcall(set, 0, "@type.terraform",    { fg = colors.cyan })
+      pcall(set, 0, "@property.terraform",{ fg = colors.yellow })
     end,
   },
 
@@ -64,7 +99,7 @@ require("lazy").setup({
     build = ":TSUpdate",
     config = function()
       require("nvim-treesitter.configs").setup({
-        highlight = { enable = true },
+        highlight = { enable = true, additional_vim_regex_highlighting = { "terraform", "hcl", "yaml" } },
         ensure_installed = {
           "lua",
           "vim",
@@ -254,54 +289,39 @@ require("mason-lspconfig").setup({
   },
 })
 
-lspconfig.terraformls.setup({ capabilities = capabilities, on_attach = on_attach })
-
-lspconfig.yamlls.setup({
-  capabilities = capabilities,
-  on_attach = on_attach,
-  settings = {
-    yaml = {
-      keyOrdering = false,
-      validate = true,
-      format = { enable = true },
-      kubernetes = true,
-      schemaStore = { enable = false, url = "" },
-      schemas = require("schemastore").yaml.schemas(),
-    },
-  },
+-- Mason のインストール先を自動的に使う共通ハンドラ
+require("mason-lspconfig").setup_handlers({
+  function(server)
+    local opts = { capabilities = capabilities, on_attach = on_attach }
+    if server == "yamlls" then
+      opts.settings = {
+        yaml = {
+          keyOrdering = false,
+          validate = true,
+          format = { enable = true },
+          kubernetes = true,
+          schemaStore = { enable = false, url = "" },
+          schemas = require("schemastore").yaml.schemas(),
+        },
+      }
+    elseif server == "jsonls" then
+      opts.settings = {
+        json = {
+          validate = { enable = true },
+          schemas = require("schemastore").json.schemas(),
+        },
+      }
+    elseif server == "lua_ls" then
+      opts.settings = {
+        Lua = {
+          diagnostics = { globals = { "vim" } },
+          workspace = { checkThirdParty = false },
+        },
+      }
+    end
+    lspconfig[server].setup(opts)
+  end,
 })
-
-lspconfig.jsonls.setup({
-  capabilities = capabilities,
-  on_attach = on_attach,
-  settings = {
-    json = {
-      validate = { enable = true },
-      schemas = require("schemastore").json.schemas(),
-    },
-  },
-})
-
-lspconfig.dockerls.setup({ capabilities = capabilities, on_attach = on_attach })
-lspconfig.bashls.setup({ capabilities = capabilities, on_attach = on_attach })
-
-lspconfig.lua_ls.setup({
-  capabilities = capabilities,
-  on_attach = on_attach,
-  settings = {
-    Lua = {
-      diagnostics = { globals = { "vim" } },
-      workspace = { checkThirdParty = false },
-    },
-  },
-})
-
-pcall(function()
-  lspconfig.helm_ls.setup({ capabilities = capabilities, on_attach = on_attach })
-end)
-
--- Markdown LSP
-lspconfig.marksman.setup({ capabilities = capabilities, on_attach = on_attach })
 
 -- Format on Save（VSCode: editor.formatOnSave = true 相当）
 require("conform").setup({
