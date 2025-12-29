@@ -13,6 +13,11 @@ vim.opt.smartcase = true
 vim.opt.signcolumn = "yes"
 vim.opt.updatetime = 200
 vim.opt.termguicolors = true
+-- 検索ハイライトは普段はオフ。必要時だけ点灯（Escで消す）
+vim.opt.hlsearch = true
+
+-- Escで検索ハイライトを消す
+vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR><Esc>", { desc = "Clear search highlight" })
 
 -- lazy.nvim bootstrap
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
