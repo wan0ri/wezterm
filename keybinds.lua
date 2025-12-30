@@ -10,6 +10,24 @@ wezterm.on("update-right-status", function(window, pane)
   window:set_right_status(name or "")
 end)
 
+-- ウィンドウの最大化/復帰をトグル（メニューバーは保持）
+local __max_state = {}
+wezterm.on("toggle-maximize", function(window, pane)
+  local id = window:window_id()
+  local dims = window:get_dimensions()
+  -- フルスクリーン中は先に解除（メニューバー非表示を避ける）
+  if dims.is_full_screen then
+    window:toggle_fullscreen()
+  end
+  if __max_state[id] then
+    window:restore()
+    __max_state[id] = false
+  else
+    window:maximize()
+    __max_state[id] = true
+  end
+end)
+
 return {
   keys = {
     {
@@ -63,9 +81,9 @@ return {
 
     -- Option+Enter で LF を挿入（iTerm2互換: 送信ではなく改行）
     { key = "Enter", mods = "ALT", action = act.SendString("\n") },
-    -- ペイン最大化（ズーム）: Cmd+Shift+F（VSCodeの最大化イメージ）
-    { key = "f", mods = "SUPER|SHIFT", action = act.TogglePaneZoomState },
-    -- 全画面切替: Ctrl+Shift+F
+    -- ウィンドウ最大化/元に戻す（メニューは残す）: Cmd+Shift+F
+    { key = "f", mods = "SUPER|SHIFT", action = act.EmitEvent("toggle-maximize") },
+    -- 全画面切替（サブ）: Ctrl+Shift+F
     { key = "f", mods = "CTRL|SHIFT", action = act.ToggleFullScreen },
 
     -- コピーモード
