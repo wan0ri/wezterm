@@ -17,8 +17,9 @@ config.font = wezterm.font_with_fallback({
 	"Apple Color Emoji",
 })
 config.use_ime = true
-config.window_background_opacity = 0.65
-config.macos_window_background_blur = 10
+-- 読みやすさを優先して少し不透明に、ぼかしは強めに
+config.window_background_opacity = 0.85
+config.macos_window_background_blur = 30
 
 ----------------------------------------------------
 -- Tab
